@@ -44,7 +44,7 @@ public class Main
 		String s = "https://www.google.com/search?q=definitely not bees";
 		if (s == null)
 		{
-			JOptionPane.showInputDialog(null, "Invalid search expression");
+			JOptionPane.showInputDialog(null, "Invalid search search");
 		}
 		else
 		{

@@ -6,10 +6,8 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.io.*;
+import java.nio.file.*;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -34,6 +32,34 @@ public class SearchLoader implements Consumer<Path>, Predicate<Path>
 		this.searchExpressions = new HashMap<>();
 		this.failedLoad = new ArrayList<>();
 		this.parser = new JSONParser();
+
+		try
+		{
+			copyEmbeddedExpressions();
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+		try
+		{
+			reload();
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	public boolean copyEmbeddedExpressions() throws IOException
+	{
+		InputStream is = getClass().getResourceAsStream("/search/google-search.json");
+		Path path = directory.resolve("google-search.json");
+		if(!Files.exists(path))
+		{
+			Files.copy(is, path);
+		}
+		return true;
 	}
 
 	public Set<String> getSearchExpressionNames()
@@ -79,7 +105,7 @@ public class SearchLoader implements Consumer<Path>, Predicate<Path>
 					}
 					else
 					{
-						searchExpressions.put(names.toString(), searchExpression);
+						searchExpressions.put(names.toString().toLowerCase(), searchExpression);
 					}
 					return;
 				}
