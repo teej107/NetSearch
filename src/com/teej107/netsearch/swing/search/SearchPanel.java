@@ -1,4 +1,6 @@
-package com.teej107.netsearch.swing;
+package com.teej107.netsearch.swing.search;
+
+import com.teej107.netsearch.swing.CloseButton;
 
 import javax.swing.*;
 import java.awt.*;
@@ -15,16 +17,19 @@ public class SearchPanel extends JPanel
 {
 	private SpringLayout layout;
 	private SearchTextField searchTextField;
+	private CloseButton closeButton;
 
 	public SearchPanel(boolean fullscreen)
 	{
 		this.layout = new SpringLayout();
 		setLayout(layout);
 		this.searchTextField = new SearchTextField();
+		this.closeButton = new CloseButton(60);
 
 		setFullscreen(fullscreen);
 
 		add(searchTextField);
+		add(closeButton);
 	}
 
 	public void setFullscreen(boolean b)
@@ -34,12 +39,13 @@ public class SearchPanel extends JPanel
 		int textFieldHeight = 60;
 		int textFieldWidth = dim.width / 3;
 		int northPad = b ? (dim.height / 2) - (textFieldHeight / 2) : 0;
-		int southPad = b ? (dim.height / 2) + (textFieldHeight / 2) : 0;
-		int eastPad = b ? (dim.width / 2) + (textFieldWidth / 2) : 0;
 		int westPad = b ? (dim.width / 2) - (textFieldWidth / 2) : 0;
 		layout.putConstraint(NORTH, searchTextField, northPad, NORTH, this);
-		layout.putConstraint(SOUTH, searchTextField, southPad, SOUTH, this);
-		layout.putConstraint(EAST, searchTextField, eastPad, EAST, this);
+		layout.putConstraint(SOUTH, searchTextField, textFieldHeight, NORTH, searchTextField);
 		layout.putConstraint(WEST, searchTextField, westPad, WEST, this);
+		layout.putConstraint(EAST, searchTextField, textFieldWidth, WEST, searchTextField);
+
+		layout.putConstraint(EAST, closeButton, 0, EAST, searchTextField);
+		layout.putConstraint(SOUTH, closeButton, -5, NORTH, searchTextField);
 	}
 }

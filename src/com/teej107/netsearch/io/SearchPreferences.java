@@ -8,7 +8,7 @@ import java.util.prefs.Preferences;
  */
 public class SearchPreferences
 {
-	private static final String FULLSCREEN = "fullscreen";
+	public static final String FULLSCREEN = "fullscreen";
 
 	private Preferences preferences;
 

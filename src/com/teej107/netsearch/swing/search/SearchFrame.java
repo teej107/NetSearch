@@ -1,4 +1,4 @@
-package com.teej107.netsearch.swing;
+package com.teej107.netsearch.swing.search;
 
 import javax.swing.*;
 import java.awt.*;
@@ -11,8 +11,9 @@ public class SearchFrame extends JFrame
 	private SearchPanel searchPanel;
 	private boolean fullscreen;
 
-	public SearchFrame(boolean fullscreen)
+	public SearchFrame(String title, boolean fullscreen)
 	{
+		setTitle(title);
 		setUndecorated(true);
 		this.searchPanel = new SearchPanel(fullscreen);
 
@@ -22,14 +23,9 @@ public class SearchFrame extends JFrame
 		setContentPane(searchPanel);
 	}
 
-	public Rectangle getScreenSize()
-	{
-		return GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
-	}
-
 	public void setFullscreen(boolean b)
 	{
-		Rectangle bounds = getScreenSize();
+		Rectangle bounds = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
 		if(b)
 		{
 			setSize(bounds.getSize());

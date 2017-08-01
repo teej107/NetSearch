@@ -1,4 +1,6 @@
-package com.teej107.netsearch.swing;
+package com.teej107.netsearch.swing.search;
+
+import com.teej107.netsearch.Application;
 
 import javax.swing.*;
 import java.awt.*;
@@ -9,11 +11,6 @@ import java.awt.*;
 public class SearchTextField extends JTextField
 {
 	private int fontSize;
-
-	private static int calculateFontSize(FontMetrics metrics, int height)
-	{
-		return (int) ((height / Math.max(metrics.getHeight(), 0.1)) * metrics.getFont().getSize());
-	}
 
 	@Override
 	public void invalidate()
@@ -29,7 +26,7 @@ public class SearchTextField extends JTextField
 		if(fontSize == 0)
 		{
 			FontMetrics metrics = getFontMetrics(getFont());
-			fontSize = calculateFontSize(metrics, getHeight());
+			fontSize = Application.calculateFontSize(metrics, getHeight());
 			setFont(metrics.getFont().deriveFont((float) fontSize));
 		}
 	}
