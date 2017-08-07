@@ -1,5 +1,8 @@
 package com.teej107.netsearch.swing.search;
 
+import com.teej107.netsearch.io.SearchPreferences;
+import com.teej107.netsearch.swing.PreferencesPanel;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -9,28 +12,66 @@ import java.awt.event.*;
  */
 public class SearchFrame extends JDialog implements WindowFocusListener, MouseMotionListener, MouseListener
 {
+	private SearchPreferences searchPreferences;
 	private SearchPanel searchPanel;
 	private boolean fullscreen;
 	private Point lastDrag;
+	private Robot robot;
 
-	public SearchFrame(SearchPanel searchPanel, String title, boolean fullscreen)
+	public SearchFrame(SearchPanel searchPanel, String title, SearchPreferences searchPreferences)
 	{
-		setTitle(title);
-		setUndecorated(true);
 		this.searchPanel = searchPanel;
-
+		setTitle(title);
+		this.searchPreferences = searchPreferences;
+		setUndecorated(true);
 		setDefaultCloseOperation(HIDE_ON_CLOSE);
-		setFullscreen(fullscreen);
+		setFullscreen(searchPreferences.isFullscreen());
 		setModalityType(ModalityType.MODELESS);
 		setContentPane(searchPanel);
 		addWindowFocusListener(this);
+
+		try
+		{
+			this.robot = new Robot();
+		}
+		catch (AWTException e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	public void click(Component c)
+	{
+		if(robot != null)
+		{
+			Point point = c.getLocation();
+			SwingUtilities.convertPointToScreen(point, c);
+			robot.mouseMove(point.x, point.y);
+			robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+			robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+		}
+	}
+
+	public void setBlurred(boolean b)
+	{
+		searchPanel.setBlurred(robot != null && fullscreen && b ? robot.createScreenCapture(getBounds()) : null);
+	}
+
+	@Override
+	public void setVisible(boolean b)
+	{
+		setBlurred(searchPreferences.isBlurred());
+		super.setVisible(b);
 	}
 
 	public void setFullscreen(boolean b)
 	{
-		Rectangle bounds = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
-		if(b)
+		this.fullscreen = b;
+		searchPanel.setFullscreen(b);
+		if (b)
 		{
+			Rectangle bounds = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
+			setAlwaysOnTop(false);
 			setSize(bounds.getSize());
 			setLocation(bounds.getLocation());
 			setBackground(new Color(0, 0, 0, 0.5f));
@@ -39,22 +80,19 @@ public class SearchFrame extends JDialog implements WindowFocusListener, MouseMo
 		}
 		else
 		{
-			Dimension screenSize = bounds.getSize();
+			setAlwaysOnTop(searchPreferences.isAlwaysOnTop());
 			setSize(searchPanel.getPreferredSize());
-			setLocation((screenSize.width / 2) - (getWidth() / 2), (screenSize.height / 2) - (getHeight() / 2));
+			setLocation(searchPreferences.getWindowLocation(this));
 			setBackground(new Color(0, 0, 0, 0));
 			addMouseMotionListener(this);
 			addMouseListener(this);
 		}
-		searchPanel.setFullscreen(b);
-		this.fullscreen = b;
 	}
 
 	public boolean isFullscreen()
 	{
 		return fullscreen;
 	}
-
 
 	@Override
 	public void windowGainedFocus(WindowEvent e)
@@ -65,15 +103,30 @@ public class SearchFrame extends JDialog implements WindowFocusListener, MouseMo
 	@Override
 	public void windowLostFocus(WindowEvent e)
 	{
-		System.exit(0);
+		if (isFullscreen())
+		{
+			Window focusGained = e.getOppositeWindow();
+			if (focusGained instanceof RootPaneContainer)
+			{
+				RootPaneContainer container = (RootPaneContainer) focusGained;
+				if (container.getContentPane() instanceof PreferencesPanel)
+					return;
+			}
+			setVisible(false);
+		}
+		else
+		{
+			searchPreferences.setWindowLocation(getLocation());
+		}
+
 	}
 
 	@Override
 	public void mouseDragged(MouseEvent e)
 	{
-		if(!fullscreen)
+		if (!fullscreen)
 		{
-			if(lastDrag != null)
+			if (lastDrag != null)
 			{
 				Point point = e.getLocationOnScreen();
 				int x = point.x - lastDrag.x;

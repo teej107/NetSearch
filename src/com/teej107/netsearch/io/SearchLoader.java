@@ -6,7 +6,10 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.*;
 import java.util.*;
 import java.util.function.Consumer;
@@ -53,13 +56,38 @@ public class SearchLoader implements Consumer<Path>, Predicate<Path>
 
 	public boolean copyEmbeddedExpressions() throws IOException
 	{
-		InputStream is = getClass().getResourceAsStream("/search/google-search.json");
-		Path path = directory.resolve("google-search.json");
-		if(!Files.exists(path))
+		try
 		{
-			Files.copy(is, path);
+			URI uri = getClass().getResource("/search").toURI();
+			DirectoryStream<Path> stream;
+			FileSystem fileSystem = null;
+			try
+			{
+				stream = Files.newDirectoryStream(Paths.get(uri));
+			}
+			catch (FileSystemNotFoundException e)
+			{
+				fileSystem = FileSystems.newFileSystem(uri, Collections.EMPTY_MAP);
+				stream = Files.newDirectoryStream(Paths.get(uri));
+			}
+			for (Path p : stream)
+			{
+				Path copyTo = directory.resolve(p.getFileName().toString());
+				if (!Files.exists(copyTo))
+				{
+					Files.copy(p, copyTo);
+				}
+			}
+			if(fileSystem != null)
+			{
+				fileSystem.close();
+			}
 		}
-		return true;
+		catch (URISyntaxException e)
+		{
+			e.printStackTrace();
+		}
+		return false;
 	}
 
 	public Set<String> getSearchExpressionNames()
