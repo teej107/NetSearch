@@ -83,26 +83,16 @@ public class Application implements PreferenceChangeListener, ActionListener
 	private void createGUI()
 	{
 		SearchTextField searchTextField = new SearchTextField();
-		searchTextField.requestFocusInWindow();
+		//Action listener added here because access to #search(String)
 		searchTextField.addActionListener(actionEvent -> search(searchTextField.getText()));
+
 		SearchPanel searchPanel = new SearchPanel(searchTextField, getName(), searchPreferences.isFullscreen(), 60);
+		//Selection listener added here because access to #search(String)
 		searchPanel.getSuggestionList().addSelectionListener(e -> search(searchPanel.getSuggestionList().getSelectedString()));
+
 		searchFrame = new SearchFrame(searchPanel, getName(), searchPreferences);
-		searchFrame.setAutoRequestFocus(true);
-		searchFrame.addWindowFocusListener(new WindowAdapter()
-		{
-			@Override
-			public void windowGainedFocus(WindowEvent e)
-			{
 
-			}
-
-			@Override
-			public void windowLostFocus(WindowEvent e)
-			{
-				searchTextField.setText("");
-			}
-		});
+		//Mouse listener added here because #showPreferences() and direct reference to searchFrame
 		searchPanel.getCloseButton().addMouseListener(new MouseAdapter()
 		{
 			@Override
@@ -115,15 +105,6 @@ public class Application implements PreferenceChangeListener, ActionListener
 				else if (SwingUtilities.isLeftMouseButton(e))
 				{
 					searchFrame.setVisible(false);
-				}
-			}
-
-			@Override
-			public void mouseClicked(MouseEvent e)
-			{
-				if (SwingUtilities.isLeftMouseButton(e))
-				{
-					e.consume();
 				}
 			}
 		});
@@ -139,7 +120,7 @@ public class Application implements PreferenceChangeListener, ActionListener
 
 			if (searchFrame.isFullscreen() || !searchPreferences.isAlwaysOnTop())
 			{
-				//Bring focus but don't want it to always be on top
+				//Hacky way to bring it to front (because other methods designed to do it didn't fully work as expected)
 				searchFrame.setAlwaysOnTop(true);
 				searchFrame.setAlwaysOnTop(false);
 			}

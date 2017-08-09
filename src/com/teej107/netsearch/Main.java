@@ -25,10 +25,11 @@ public class Main
 			System.exit(0);
 			return;
 		}
+
 		try
 		{
 			Application application = new Application();
-			//application.createAndShowGui();
+			application.createAndShowGui();
 		}
 		catch (IOException e)
 		{

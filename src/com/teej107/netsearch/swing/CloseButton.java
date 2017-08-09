@@ -51,7 +51,10 @@ public class CloseButton extends JComponent implements MouseListener
 	@Override
 	public void mouseClicked(MouseEvent e)
 	{
-
+		if (SwingUtilities.isLeftMouseButton(e))
+		{
+			e.consume();
+		}
 	}
 
 	@Override
