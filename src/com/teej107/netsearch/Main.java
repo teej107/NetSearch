@@ -29,9 +29,11 @@ public class Main
 		try
 		{
 			Application application = new Application();
-
-			//Don't wont to show GUI at startup in case program is started at login
-			//application.createAndShowGui();
+			//Don't wont to show GUI at startup in case program is started at login unless a keyboard shortcut is not defined
+			if(!application.hasKeyboardShortcut())
+			{
+				application.createAndShowGui();
+			}
 		}
 		catch (IOException e)
 		{

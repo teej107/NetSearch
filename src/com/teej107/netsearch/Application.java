@@ -84,6 +84,11 @@ public class Application implements PreferenceChangeListener, ActionListener
 		}
 	}
 
+	public boolean hasKeyboardShortcut()
+	{
+		return searchPreferences.getKeyShortcut().length > 0;
+	}
+
 	private void createGUI()
 	{
 		SearchTextField searchTextField = new SearchTextField();
@@ -131,7 +136,14 @@ public class Application implements PreferenceChangeListener, ActionListener
 				}
 				else if (SwingUtilities.isLeftMouseButton(e))
 				{
-					searchFrame.setVisible(false);
+					if(hasKeyboardShortcut())
+					{
+						searchFrame.setVisible(false);
+					}
+					else
+					{
+						System.exit(0);
+					}
 				}
 			}
 		});

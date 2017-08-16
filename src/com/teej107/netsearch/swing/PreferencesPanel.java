@@ -103,7 +103,9 @@ public class PreferencesPanel extends JPanel implements MouseListener
 		}
 		else if(e.getComponent() == shortcutLabel)
 		{
+			SwingUtilities.getWindowAncestor(this).setAlwaysOnTop(false);
 			int[] shortcut = ShortcutDialog.getKeyCodes(this);
+			SwingUtilities.getWindowAncestor(this).setAlwaysOnTop(true);
 			if(shortcut != null)
 			{
 				preferences.setKeyShortcut(shortcut);
