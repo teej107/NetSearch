@@ -13,7 +13,7 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.geom.RoundRectangle2D;
-import java.awt.image.*;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.Future;
@@ -130,11 +130,12 @@ public class SearchPanel extends JPanel implements DocumentListener, KeyListener
 		}
 		else
 		{
-			layout.putConstraint(SOUTH, searchTextField, 0, SOUTH, this);
+			int closeButtonSize = 30;
+			layout.putConstraint(NORTH, searchTextField, closeButtonSize + padding, NORTH, this);
 			layout.putConstraint(EAST, searchTextField, 0, EAST, this);
 			layout.putConstraint(WEST, searchTextField, 0, WEST, this);
-			layout.putConstraint(NORTH, searchTextField, -textFieldHeight, SOUTH, searchTextField);
-			closeButton.setSize(30);
+			layout.putConstraint(SOUTH, searchTextField, textFieldHeight, NORTH, searchTextField);
+			closeButton.setSize(closeButtonSize);
 			if (font == null)
 			{
 				calculateTitleFont();
@@ -144,7 +145,7 @@ public class SearchPanel extends JPanel implements DocumentListener, KeyListener
 		layout.putConstraint(EAST, closeButton, -padding, EAST, searchTextField);
 		layout.putConstraint(SOUTH, closeButton, b ? -padding : -padding / 2, NORTH, searchTextField);
 
-		layout.putConstraint(NORTH, suggestionList, padding, SOUTH, searchTextField);
+		layout.putConstraint(NORTH, suggestionList, b ? padding : 1, SOUTH, searchTextField);
 		layout.putConstraint(WEST, suggestionList, 0, WEST, searchTextField);
 		layout.putConstraint(EAST, suggestionList, textFieldWidth, WEST, suggestionList);
 		layout.putConstraint(SOUTH, suggestionList, -padding, SOUTH, this);
@@ -156,18 +157,25 @@ public class SearchPanel extends JPanel implements DocumentListener, KeyListener
 		if (future != null)
 			future.cancel(true);
 
-		this.future = GoogleSearchSuggestion.getThreadService().submit(() ->
+		if (text.trim().length() == 0)
 		{
-			try
+			suggestionList.setData(null);
+		}
+		else
+		{
+			this.future = GoogleSearchSuggestion.getThreadService().submit(() ->
 			{
-				List<String> list = GoogleSearchSuggestion.getResults(text);
-				SwingUtilities.invokeLater(() -> suggestionList.setData(list));
-			}
-			catch (IOException e1)
-			{
-				e1.printStackTrace();
-			}
-		});
+				try
+				{
+					List<String> list = GoogleSearchSuggestion.getResults(text);
+					SwingUtilities.invokeLater(() -> suggestionList.setData(future.isCancelled() ? null : list));
+				}
+				catch (IOException e1)
+				{
+					e1.printStackTrace();
+				}
+			});
+		}
 	}
 
 	@Override
@@ -197,7 +205,7 @@ public class SearchPanel extends JPanel implements DocumentListener, KeyListener
 	@Override
 	public void keyPressed(KeyEvent e)
 	{
-		if(e.getKeyCode() == KeyEvent.VK_KP_DOWN || e.getKeyCode() == KeyEvent.VK_DOWN || e.getKeyCode() == KeyEvent.VK_PAGE_DOWN)
+		if (e.getKeyCode() == KeyEvent.VK_KP_DOWN || e.getKeyCode() == KeyEvent.VK_DOWN || e.getKeyCode() == KeyEvent.VK_PAGE_DOWN)
 			moveSelection(true);
 		else if (e.getKeyCode() == KeyEvent.VK_KP_UP || e.getKeyCode() == KeyEvent.VK_UP || e.getKeyCode() == KeyEvent.VK_PAGE_UP)
 			moveSelection(false);
@@ -211,16 +219,16 @@ public class SearchPanel extends JPanel implements DocumentListener, KeyListener
 
 	private void moveSelection(boolean down)
 	{
-		if(suggestionList.getMaxIndex() == -1)
+		if (suggestionList.getMaxIndex() == -1)
 			return;
 
 		searchTextField.getDocument().removeDocumentListener(this);
 		int selectedIndex = suggestionList.getSelectedIndex() + (down ? 1 : -1);
-		if(selectedIndex > suggestionList.getMaxIndex())
+		if (selectedIndex > suggestionList.getMaxIndex())
 		{
 			suggestionList.setSelectedIndex(0);
 		}
-		else if(selectedIndex < 0)
+		else if (selectedIndex < 0)
 		{
 			suggestionList.setSelectedIndex(suggestionList.getMaxIndex());
 		}

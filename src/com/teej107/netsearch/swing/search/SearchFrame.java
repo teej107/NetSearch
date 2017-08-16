@@ -2,15 +2,18 @@ package com.teej107.netsearch.swing.search;
 
 import com.teej107.netsearch.io.SearchPreferences;
 import com.teej107.netsearch.swing.PreferencesPanel;
+import com.teej107.netsearch.swing.StringJList;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.*;
 
 /**
  * Created by teej107 on 7/31/2017.
  */
-public class SearchFrame extends JDialog implements WindowFocusListener, MouseMotionListener, MouseListener
+public class SearchFrame extends JDialog implements WindowFocusListener, MouseMotionListener, MouseListener, ChangeListener
 {
 	private SearchPreferences searchPreferences;
 	private SearchPanel searchPanel;
@@ -21,6 +24,7 @@ public class SearchFrame extends JDialog implements WindowFocusListener, MouseMo
 	public SearchFrame(SearchPanel searchPanel, String title, SearchPreferences searchPreferences)
 	{
 		this.searchPanel = searchPanel;
+		this.searchPanel.getSuggestionList().setChangeListener(this);
 		setTitle(title);
 		this.searchPreferences = searchPreferences;
 		setUndecorated(true);
@@ -42,10 +46,10 @@ public class SearchFrame extends JDialog implements WindowFocusListener, MouseMo
 
 	public void click(Component c)
 	{
-		if(robot != null)
+		if (robot != null)
 		{
 			Point point = c.getLocation();
-			SwingUtilities.convertPointToScreen(point, c);
+			SwingUtilities.convertPointToScreen(point, this);
 			robot.mouseMove(point.x, point.y);
 			robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
 			robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
@@ -103,22 +107,18 @@ public class SearchFrame extends JDialog implements WindowFocusListener, MouseMo
 	@Override
 	public void windowLostFocus(WindowEvent e)
 	{
-		if (isFullscreen())
+		Window focusGained = e.getOppositeWindow();
+		if (focusGained instanceof RootPaneContainer)
 		{
-			Window focusGained = e.getOppositeWindow();
-			if (focusGained instanceof RootPaneContainer)
-			{
-				RootPaneContainer container = (RootPaneContainer) focusGained;
-				if (container.getContentPane() instanceof PreferencesPanel)
-					return;
-			}
-			setVisible(false);
+			RootPaneContainer container = (RootPaneContainer) focusGained;
+			if (container.getContentPane() instanceof PreferencesPanel)
+				return;
 		}
-		else
+		setVisible(false);
+		if (!isFullscreen())
 		{
 			searchPreferences.setWindowLocation(getLocation());
 		}
-
 	}
 
 	@Override
@@ -173,5 +173,18 @@ public class SearchFrame extends JDialog implements WindowFocusListener, MouseMo
 	public void mouseExited(MouseEvent e)
 	{
 
+	}
+
+	@Override
+	public void stateChanged(ChangeEvent e)
+	{
+		if (!fullscreen)
+		{
+			StringJList stringJList = (StringJList) e.getSource();
+			Dimension size = searchPanel.getPreferredSize();
+			setSize(stringJList.isEmpty() ?
+					size :
+					new Dimension(size.width, size.height + stringJList.getTotalHeight()));
+		}
 	}
 }

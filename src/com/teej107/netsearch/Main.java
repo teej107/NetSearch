@@ -29,7 +29,9 @@ public class Main
 		try
 		{
 			Application application = new Application();
-			application.createAndShowGui();
+
+			//Don't wont to show GUI at startup in case program is started at login
+			//application.createAndShowGui();
 		}
 		catch (IOException e)
 		{

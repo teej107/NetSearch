@@ -30,6 +30,10 @@ public class Application implements PreferenceChangeListener, ActionListener
 	private ShortcutListener shortcutListener;
 	private Path directory;
 	private Desktop desktop;
+	private boolean currentlySearching;
+
+	//TextField focus bug fix
+	private boolean firstShow = true;
 
 	public Application() throws IOException
 	{
@@ -84,13 +88,36 @@ public class Application implements PreferenceChangeListener, ActionListener
 	{
 		SearchTextField searchTextField = new SearchTextField();
 		//Action listener added here because access to #search(String)
-		searchTextField.addActionListener(actionEvent -> search(searchTextField.getText()));
+		searchTextField.addActionListener(actionEvent -> {
+			search(searchTextField.getText());
+			searchTextField.setText("");
+		});
 
 		SearchPanel searchPanel = new SearchPanel(searchTextField, getName(), searchPreferences.isFullscreen(), 60);
 		//Selection listener added here because access to #search(String)
-		searchPanel.getSuggestionList().addSelectionListener(e -> search(searchPanel.getSuggestionList().getSelectedString()));
+		searchPanel.getSuggestionList().addSelectionListener(e -> {
+			search(searchPanel.getSuggestionList().getSelectedString());
+			searchTextField.setText("");
+		});
 
 		searchFrame = new SearchFrame(searchPanel, getName(), searchPreferences);
+
+		searchFrame.addWindowFocusListener(new WindowAdapter()
+		{
+			@Override
+			public void windowGainedFocus(WindowEvent e)
+			{
+				//Bring focus to searchTextField on focus. Bug: Doesn't work on first show on Windows 10
+				searchTextField.requestFocusInWindow();
+
+				//Bug fix here
+				if (firstShow)
+				{
+					firstShow = false;
+					searchFrame.click(searchTextField);
+				}
+			}
+		});
 
 		//Mouse listener added here because #showPreferences() and direct reference to searchFrame
 		searchPanel.getCloseButton().addMouseListener(new MouseAdapter()
@@ -155,6 +182,11 @@ public class Application implements PreferenceChangeListener, ActionListener
 
 	public void search(String s)
 	{
+		if (currentlySearching)
+			return;
+
+		currentlySearching = true;
+
 		s = s.trim();
 		if (s.length() > 0)
 		{
@@ -193,6 +225,8 @@ public class Application implements PreferenceChangeListener, ActionListener
 				}
 			}
 		}
+
+		currentlySearching = false;
 	}
 
 	private void parseArgs(SearchExpression expression, String args) throws IOException, URISyntaxException

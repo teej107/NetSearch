@@ -4,7 +4,7 @@ import com.teej107.netsearch.Application;
 
 import javax.swing.*;
 import javax.swing.border.*;
-import javax.swing.event.ListSelectionListener;
+import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
@@ -26,6 +26,7 @@ public class StringJList extends JScrollPane implements MouseMotionListener, Mou
 	private List<JLabel> data;
 	private int cellSize, hoverCell;
 	private Border border;
+	private ChangeListener changeListener;
 
 	public StringJList(Border border, boolean hideIfNoData, int cellSize)
 	{
@@ -79,6 +80,15 @@ public class StringJList extends JScrollPane implements MouseMotionListener, Mou
 		return jList.getSelectedIndex();
 	}
 
+	public int getTotalHeight()
+	{
+		if(data.size() == 0)
+			return 0;
+
+		JLabel label = data.get(0);
+		return (label.getPreferredSize().height + 1) * data.size();
+	}
+
 	public int getMaxIndex()
 	{
 		return data.size() - 1;
@@ -94,12 +104,6 @@ public class StringJList extends JScrollPane implements MouseMotionListener, Mou
 	}
 
 	@Override
-	public synchronized void addKeyListener(KeyListener l)
-	{
-		super.addKeyListener(l);
-	}
-
-	@Override
 	public synchronized void addMouseListener(MouseListener l)
 	{
 		jList.addMouseListener(l);
@@ -111,28 +115,42 @@ public class StringJList extends JScrollPane implements MouseMotionListener, Mou
 		jList.addMouseMotionListener(l);
 	}
 
+	public void setChangeListener(ChangeListener listener)
+	{
+		this.changeListener = listener;
+	}
+
+	public boolean isEmpty()
+	{
+		return data.isEmpty();
+	}
+
 	public void setData(List<String> list)
 	{
 		this.data.clear();
 
-		Font font = getFont();
-		int fontSize = Application.calculateFontSize(getFontMetrics(font), cellSize);
-		font = font.deriveFont((float) fontSize);
 
-		for (String s : list)
+		if(list != null)
 		{
-			JLabel label = new JLabel(s, JLabel.LEFT);
-			label.setOpaque(true);
-			label.setForeground(LABEL_COLOR);
-			label.setFont(font);
+			Font font = getFont();
+			int fontSize = Application.calculateFontSize(getFontMetrics(font), cellSize);
+			font = font.deriveFont((float) fontSize);
+			for (String s : list)
+			{
+				JLabel label = new JLabel(s, JLabel.LEFT);
+				label.setOpaque(true);
+				label.setForeground(LABEL_COLOR);
+				label.setFont(font);
 
-			data.add(label);
+				data.add(label);
+			}
 		}
 		if (hideIfNoData)
 		{
 			setVisible(list != null && list.size() > 0);
 		}
 		model.update();
+		changeListener.stateChanged(new ChangeEvent(this));
 	}
 
 	@Override
